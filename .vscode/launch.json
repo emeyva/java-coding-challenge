@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - JavaChallengeApplication",
+            "request": "launch",
+            "mainClass": "com.unbabel.challenge.JavaChallengeApplication",
+            "projectName": "challenge"
+        }
+    ]
+}
