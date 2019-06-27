@@ -1,6 +1,5 @@
 package com.unbabel.challenge.controller;
 
-
 import com.unbabel.challenge.model.Message;
 import com.unbabel.challenge.repositories.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,20 +17,19 @@ import java.io.DataOutputStream;
 import org.json.JSONObject;
 import java.util.concurrent.TimeUnit;
 
-
 @Controller
 public class IndexController {
     String url = "https://sandbox.unbabel.com/tapi/v2/translation/";
     String username = "&username=fullstack-challenge";
     String apiKey = "?api_key=9db71b322d43a6ac0f681784ebdcc6409bb83359";
+    HttpURLConnection con = null;
     String postResult;
     String getResult;
     String status;
     String translatedText;
     String originalLanguage;
     JSONObject jsonObjGetResult;
-    String originalTxt;
-    String languageToTranslate;
+    
 
     @Autowired
     MessageRepository messageRepository;
@@ -51,24 +49,20 @@ public class IndexController {
 
     @PostMapping("/")
     public String checkMsgInfo(@ModelAttribute Message message, Model model) {
-        //set text and language
-        originalTxt=message.getMsg();
-        languageToTranslate=message.getLan();
-
+    
         //execute post and get request
-        postResult=postRequest(originalTxt,languageToTranslate);
+        postResult=postRequest(message.getMsg(),message.getLan());
         getResult=getRequest(postResult);
         
         //use server answer to get status, translated text and original language
         jsonObjGetResult=new JSONObject(getResult);
-        status=jsonObjGetResult.getString("status");
-        translatedText=jsonObjGetResult.getString("translatedText");
-        originalLanguage=jsonObjGetResult.getString("source_language");
         
         //set status, translated text and original language
-        message.setCon(translatedText);
-        message.setStatus(status);
-        message.setOriLan(originalLanguage);
+        message.setCon(jsonObjGetResult.getString("translatedText"));
+        message.setStatus(jsonObjGetResult.getString("status"));
+        message.setOriLan(jsonObjGetResult.getString("source_language"));
+
+        //save message to rep and add both to model
         messageRepository.save(message);
         model.addAttribute("message", message);
         model.addAttribute("messages", messageRepository.findAll());
@@ -77,12 +71,11 @@ public class IndexController {
     }
     
     
-    private String getRequest(String jsonString){
+    public String getRequest(String jsonString){
         JSONObject jsonResponse = new JSONObject(jsonString);
-        String uid = jsonResponse.getString("uid");
-        String getUrl=url+uid+"/"+apiKey+username;
+        String getUrl=url+jsonResponse.getString("uid")+"/"+apiKey+username;
         String resultString = "";
-        HttpURLConnection con = null;
+        
         
         try {
             //set connection;
@@ -92,7 +85,7 @@ public class IndexController {
             con.setRequestMethod("GET");
             con.setDoOutput(true);
 
-            //get input from request
+            //get response from request
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuffer response = new StringBuffer();
             String inputLine;
@@ -124,10 +117,9 @@ public class IndexController {
     }
 
 
-    private String postRequest(String text, String language){
+    public String postRequest(String text, String language){
         String postUrl=url+apiKey+username;
         String resultString = "";
-        HttpURLConnection con = null;
         try {
             //set connection
             URL obj = new URL(postUrl);

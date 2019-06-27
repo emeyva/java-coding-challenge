@@ -14,7 +14,8 @@ public class JavaChallengeApplicationTests {
 	@Test
 	public void contextLoads() {
 		IndexControllerTest.initTests();
-		IndexControllerTest.testTrans();
+		IndexControllerTest.testTranslation();
+
 	}
 
 }
